@@ -4,8 +4,9 @@
     {
       "id": "minecraft",
       "name": "Minecraft",
-      "description": "java edition",
-      "file": "Minecraft.ttf"
+      "description": "Minecraft Font",
+      "file": "Minecraft.ttf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
     }
   ]
 }
