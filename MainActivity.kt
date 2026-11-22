@@ -80,6 +80,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.rounded.AddPhotoAlternate
 import androidx.compose.material.icons.rounded.BatteryFull
+import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -149,7 +150,9 @@ class MainActivity : ComponentActivity() {
                     primary = Color(0xFF60A5FA)
                 )
             ) {
-                PhotosByTinnApp()
+                FontPackTheme {
+                    PhotosByTinnApp()
+                }
             }
         }
     }
@@ -159,6 +162,7 @@ class MainActivity : ComponentActivity() {
 fun PhotosByTinnApp() {
     var selectedTab by remember { mutableIntStateOf(0) }
     var selectedMediaUri by remember { mutableStateOf<Uri?>(null) }
+    var albumViewerOpen by remember { mutableStateOf(false) }
     val context = LocalContext.current
     var mediaUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var hasPermission by remember { mutableStateOf(false) }
@@ -197,7 +201,7 @@ fun PhotosByTinnApp() {
     }
 
     LaunchedEffect(selectedTab) {
-        if (selectedTab == 1) barsVisible = true
+        if (selectedTab != 0) barsVisible = true
     }
 
     val permissionsToRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -226,9 +230,9 @@ fun PhotosByTinnApp() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF101012))
-            .pointerInput(selectedTab, selectedMediaUri) {
-                // Chỉ nhận vuốt ngang khi đang ở màn tab, không can thiệp khi mở ảnh/video.
-                if (selectedMediaUri == null) {
+            .pointerInput(selectedTab, selectedMediaUri, albumViewerOpen) {
+                // Vuốt đổi tab; tắt gesture khi đang xem ảnh/video hoặc trình chiếu album.
+                if (selectedMediaUri == null && !albumViewerOpen) {
                     var totalDrag = 0f
                     val swipeThreshold = 64.dp.toPx()
 
@@ -239,8 +243,8 @@ fun PhotosByTinnApp() {
                         },
                         onDragEnd = {
                             when {
-                                totalDrag < -swipeThreshold && selectedTab == 0 -> selectedTab = 1
-                                totalDrag > swipeThreshold && selectedTab == 1 -> selectedTab = 0
+                                totalDrag < -swipeThreshold && selectedTab < 2 -> selectedTab += 1
+                                totalDrag > swipeThreshold && selectedTab > 0 -> selectedTab -= 1
                             }
                             totalDrag = 0f
                         },
@@ -284,7 +288,11 @@ fun PhotosByTinnApp() {
                     onMediaClick = { uri -> selectedMediaUri = uri }
                 )
 
-                1 -> DeveloperInfoScreen(
+                1 -> AlbumFeatureScreen(
+                    onViewerVisibilityChanged = { albumViewerOpen = it }
+                )
+
+                2 -> DeveloperInfoScreen(
                     currentBorderColor = borderColorHex,
                     currentEffectMode = tabEffectMode,
                     onColorChanged = { newColor ->
@@ -300,7 +308,7 @@ fun PhotosByTinnApp() {
         }
 
         AnimatedVisibility(
-            visible = barsVisible,
+            visible = barsVisible && !albumViewerOpen,
             enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
             modifier = Modifier.align(Alignment.TopCenter)
@@ -309,7 +317,7 @@ fun PhotosByTinnApp() {
         }
 
         AnimatedVisibility(
-            visible = barsVisible,
+            visible = barsVisible && !albumViewerOpen,
             enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
             exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
             modifier = Modifier.align(Alignment.BottomEnd)
@@ -1201,12 +1209,7 @@ fun DeveloperInfoScreen(
                         verticalArrangement = Arrangement.spacedBy(3.dp)
                     ) {
                         Text("Working", color = Color(0xFF4ADE80), fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        Text(
-                            currentVersionName,
-                            color = Color.White,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Text("3.0", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
 
@@ -1231,6 +1234,7 @@ fun DeveloperInfoScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 HorizontalDivider(color = Color(0xFF2A2A30))
                 Spacer(modifier = Modifier.height(16.dp))
+                FontPackSettingsSection()
 
                 Text(
                     text = "Tab Button Effect",
@@ -1240,6 +1244,7 @@ fun DeveloperInfoScreen(
                     modifier = Modifier.align(Alignment.Start)
                 )
                 Spacer(modifier = Modifier.height(10.dp))
+
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1491,7 +1496,7 @@ fun BottomVerticalFloatingTabBar(
     }
 
     val indicatorOffsetY by animateFloatAsState(
-        targetValue = if (selectedTab == 0) 0f else 54f,
+        targetValue = selectedTab * 54f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy,
             stiffness = Spring.StiffnessMediumLow
@@ -1537,11 +1542,19 @@ fun BottomVerticalFloatingTabBar(
                     )
 
                     TabPillVerticalIcon(
-                        icon = Icons.Outlined.Info,
+                        icon = Icons.Rounded.Folder,
                         isSelected = selectedTab == 1,
                         effectMode = effectMode,
                         pulseAlpha = pulseAlpha,
                         onClick = { onTabSelected(1) }
+                    )
+
+                    TabPillVerticalIcon(
+                        icon = Icons.Outlined.Info,
+                        isSelected = selectedTab == 2,
+                        effectMode = effectMode,
+                        pulseAlpha = pulseAlpha,
+                        onClick = { onTabSelected(2) }
                     )
                 }
             }
