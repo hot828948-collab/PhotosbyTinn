@@ -4,8 +4,8 @@
     {
       "id": "minecraft",
       "name": "Minecraft",
-      "description": "Java edition",
-      "file": "Minecraft.ttf",
+      "description": "java edition",
+      "file": "Minecraft.ttf"
     }
   ]
 }
