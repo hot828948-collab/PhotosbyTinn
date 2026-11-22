@@ -4,9 +4,14 @@
     {
       "id": "minecraft",
       "name": "Minecraft",
-      "description": "Minecraft Font",
-      "file": "Minecraft.ttf",
-      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      "description": "Minecraft Font - Java edition - By Craftron Gaming",
+      "file": "Minecraft.ttf"
+    },
+    {
+      "id": "quantico",
+      "name": "Quantico",
+      "description": "Quantico - Modern Style- by  Matthew Desmond ",
+      "file": "Quantico.ttf"
     }
   ]
 }
