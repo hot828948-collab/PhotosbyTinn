@@ -1,0 +1,3 @@
+*.kt linguist-language=Kotlin
+*.xml linguist-detectable=true
+docs/ linguist-vendored=true
